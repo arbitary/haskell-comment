@@ -1,3 +1,4 @@
 .stack-work/
 block-comment.cabal
+*.cabal
 *~.DS_*
