@@ -1,9 +1,9 @@
 name:                haskell-comment
 version:             0.1.0.0
-github:              "githubuser/haskell-comment"
+github:              "https://github.com/arbitary/haskell-comment"
 license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
+author:              "🐻"
+maintainer:          "my@my.com"
 copyright:           "2019 🐻"
 
 
@@ -14,7 +14,7 @@ copyright:           "2019 🐻"
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/block-comment#readme>
+description:         Please see the README on GitHub at <https://github.com/arbitary/haskell-comment/blob/master/README.md>
 
 default-extensions:
 - OverloadedStrings
