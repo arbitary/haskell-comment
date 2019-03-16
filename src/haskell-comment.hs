@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-cse #-}
+
 --------------------
 -- Import
 --------------------
@@ -6,46 +8,57 @@ import           RIO
 import qualified RIO.Text as Text
 import           Test.Hspec
 import           System.Environment
+import           System.Console.CmdArgs
 
 --------------------
 -- Data
 --------------------
 
-haddockPrefix     = "-- | "
-lineCommentPrefix = "-- "
+haddockPrefix      = "-- | "
+lineCommentPrefix  = "-- "
+blockCommentPS = ("{-", "-}")
 
 --------------------
 -- Data definition
 --------------------
 
--- Length represents the number of character used for commenting
-type Length = Int
-
--- Symbol represents the string used for commenting
+-- | Symbol represents the Text used to build the section box
 type Symbol = Text
 
--- Line represents a line of String 
+-- | Block resprents a block of Text
+type Block = Text
+
+-- | Line represents a line of String 
 type Line = Text
 
 -- CommentPrefix represents prefix used to prepend
 -- ; to a Text
 type CommentPrefix = Text
 
+data HComment = HComment
+    { hello :: String
+    }
+    deriving (Data, Typeable, Show, Eq)
 
 --------------------
 -- Function
 --------------------
 
--- isLineCommented consumes a line of text
--- ; it returns True if the line starts with "--"
--- after removing leading spaces.
+-- | "isLineCommented line" returns True
+-- if the line starts with "--" or with only space as its prefix
+-- e.g. "  --" 
 isLineCommented :: Line -> Bool
 isLineCommented = ("--" `Text.isPrefixOf`) . Text.strip 
+
+-- | "isBlockCommented t" returns True if t's prefix is "{-" and its
+-- suffix is "-}"; it turns False otherwise.
+isBlockCommented :: Text -> Bool
+isBlockCommented = (&&) <$> Text.isPrefixOf "{-" <*> Text.isSuffixOf "-}"
 
 isHaddockLine :: Line -> Bool
 isHaddockLine = ("-- |" `Text.isPrefixOf`) . Text.strip
   
--- commentLine prefix line retuturns a Line with "-- " prepended to `line`
+-- | "commentLine prefix line" retuturns a Line with "-- " prepended to `line`
 commentLine :: CommentPrefix -> Line -> Line
 commentLine = (<>)
 
@@ -66,24 +79,29 @@ toggleLineComment commentPrefix line
   | otherwise = commentLine commentPrefix line
 
 
--- TODO toggleBlockComment = undefined
+toggleBlockComment :: Text -> Text
+toggleBlockComment = bool <$> commentBlock <*> uncommentBlock <*> isBlockCommented
+  where
+    commentBlock   = (<> snd blockCommentPS) . (fst blockCommentPS <>)
+    uncommentBlock = Text.dropSuffix (snd blockCommentPS) . Text.dropPrefix (fst blockCommentPS) 
 
-addSection :: Length -> Symbol -> [Text] -> Text
+addSection :: Int -> Symbol -> [Text] -> Text
 addSection n symbol ts = Text.unlines $ [line] <> map prependLine ts <> [line]
   where
     prependLine :: Text -> Text
     prependLine = Text.append (Text.replicate 2 symbol <> " ")
-    line        = Text.replicate n symbol
+    line        = Text.replicate n symbol 
 
--- f consumes all input                            
--- ; it produces a new block comment with provided 
--- input strings embeded.                          
-f :: String -> String
-f = Text.unpack . addSection 20 "-" . Text.lines . Text.stripEnd . Text.pack
+-- | "inputToSection ss" turns ss into a section. e.g.:
+--           --------------------
+-- Section    -- Section
+--           --------------------
+inputToSection :: String -> String
+inputToSection = Text.unpack . addSection 20 "-" . Text.lines . Text.stripEnd . Text.pack
 
 -- processInput f consumes a String: s
 -- ; it returns a new String by applying f to each line of s
--- | processInput :: (Line -> Line) -> String -> String
+processInput :: (Line -> Line) -> String -> String
 processInput toggleFunc = Text.unpack . Text.unlines . fmap toggleFunc 
                         . Text.lines .  Text.pack
 
@@ -97,16 +115,18 @@ main = do
     [subcommand] -> case subcommand of
                       "toggle-line"    -> interact (processInput (toggleLineComment lineCommentPrefix)) 
                       "toggle-haddock" -> interact (processInput (toggleLineComment haddockPrefix)) 
-                      _                -> putStrLn $  "Incorrect sub command. Available sub commands: " 
-                                                <> "{ toggle-line | toggle-haddock | toggle-block | toggle-section }"
+                      "toggle-section" -> interact inputToSection
+                      "toggle-block"   -> interact (Text.unpack . toggleBlockComment . Text.strip . Text.pack) 
+                      _                -> putStrLn $ "Incorrect sub command. available sub commands: " 
+                                                   <> "{ toggle-line | toggle-haddock | toggle-block | toggle-section }"
     _            -> 
                       putStrLn $  "Incorrect format." <> " "  <> "Usage: " 
-                               <> "haskell-comment { toggle-line | toggle-block | toggle-section }"
+                               <> "haskell-comment { toggle-line | toggle-haddock | toggle-block | toggle-section }"
   
 -- test
--- interact f
 
-
+{-kkk xxxx-}
+-- ke -- xxx
 --------------------
 -- Test
 --------------------
