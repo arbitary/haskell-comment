@@ -1,6 +1,6 @@
-name:                haskell-comment
+name:                haskell-comment-command
 version:             0.1.0.0
-github:              "https://github.com/arbitary/haskell-comment"
+github:              "https://github.com/arbitary/haskell-comment-command"
 license:             BSD3
 author:              "🐻"
 maintainer:          "my@my.com"
@@ -20,15 +20,13 @@ default-extensions:
 - OverloadedStrings
 - OverloadedLists
 - LambdaCase
-- DeriveDataTypeable
 dependencies:
 - base >= 4.7 && < 5
 - rio
 - hspec
-- cmdargs
 executables:
-  haskell-comment:
-    main:                haskell-comment.hs
+  hcc:
+    main:                haskell-comment-command.hs
     source-dirs:         src
     ghc-options:
     - -threaded
